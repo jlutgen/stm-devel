@@ -1,0 +1,7 @@
+arm-none-eabi-gcc syscalls.c -mcpu=cortex-m0 -std=gnu11  -DSTM32 -DSTM32F0 -DNUCLEO_F091RC -DSTM32F091RCTx -c  -O0 -ffunction-sections -fdata-sections -Wall --specs=nano.specs -mfloat-abi=soft -mthumb
+arm-none-eabi-gcc sysmem.c -mcpu=cortex-m0 -std=gnu11 -DSTM32 -DSTM32F0 -DNUCLEO_F091RC -DSTM32F091RCTx -c  -O0 -ffunction-sections -fdata-sections -Wall --specs=nano.specs -mfloat-abi=soft -mthumb
+arm-none-eabi-gcc startup_stm32f091rctx.s -mcpu=cortex-m0 -std=gnu11 -DSTM32 -DSTM32F0 -DNUCLEO_F091RC -DSTM32F091RCTx -c  -O0 -ffunction-sections -fdata-sections -Wall   --specs=nano.specs -mfloat-abi=soft -mthumb
+arm-none-eabi-gcc main.c -DSTM32F091xC -I/Users/jlutgen/STM32Cube/Repository//STM32Cube_FW_F0_V1.10.1/Drivers/CMSIS/Include -I/Users/jlutgen/STM32Cube/Repository/STM32Cube_FW_F0_V1.10.1/Drivers/CMSIS/Device/ST/STM32F0xx/Include -mcpu=cortex-m0 -std=gnu11 -g3 -DSTM32 -DSTM32F0 -DNUCLEO_F091RC -DSTM32F091RCTx -DDEBUG -c  -O0 -ffunction-sections -fdata-sections -Wall   --specs=nano.specs -mfloat-abi=soft -mthumb
+arm-none-eabi-gcc -o out.elf *.o   -mcpu=cortex-m0 -TSTM32F091RCTX_FLASH.ld --specs=nosys.specs -Wl,-Map=out.map -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+arm-none-eabi-objcopy -O binary out.elf out.bin
+
