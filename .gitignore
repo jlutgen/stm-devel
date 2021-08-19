@@ -1,0 +1,14 @@
+.DS_store
+*.hex
+*.bin
+*.map
+*.o
+*.a
+*.elf
+*.dep
+*.dis
+log.*
+*.swp
+*~     
+.vscode/*
+*.code-workspace
