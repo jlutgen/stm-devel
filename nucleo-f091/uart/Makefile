@@ -6,28 +6,27 @@
 #
 #############################################################
 
-PREFIX=/Users/jlutgen/arm/gcc-arm-none-eabi/bin
+PROCESSOR=STM32F091xC
+STM_COMMON=$(HOME)/STM32Cube/Repository/STM32Cube_FW_F0_V1.10.1
 PROG_PREFIX=/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/MacOs/bin
 
-
 CROSS=arm-none-eabi
-PREFIX=~/arm/gcc-$(CROSS)/bin
-CC=$(PREFIX)/$(CROSS)-gcc
+CC=$(CROSS)-gcc
 
-INCLUDES=-I/Users/jlutgen/STM32Cube/Repository/STM32Cube_FW_F0_V1.10.1/Drivers/CMSIS/Include \
-		 -I/Users/jlutgen/STM32Cube/Repository/STM32Cube_FW_F0_V1.10.1/Drivers/CMSIS/Device/ST/STM32F0xx/Include \
-		 -I/Users/jlutgen/STM32Cube/Repository/STM32Cube_FW_F0_V1.10.1/Drivers/STM32F0xx_HAL_Driver/Inc
+INCLUDES=-I$(STM_COMMON)/Drivers/CMSIS/Include \
+		 -I$(STM_COMMON)/Drivers/CMSIS/Device/ST/STM32F0xx/Include \
+		 -I$(STM_COMMON)/Drivers/STM32F0xx_HAL_Driver/Inc
 
-LL_DIR=~/STM32Cube/Repository/STM32Cube_FW_F0_V1.10.1/Drivers/STM32F0xx_HAL_Driver/Src
+LL_DIR=$(STM_COMMON)/Drivers/STM32F0xx_HAL_Driver/Src
 
 # The bin creator
-HX=$(PREFIX)/$(CROSS)-objcopy
+HX=$(CROSS)-objcopy
 
 # The object dumper
-OBJDMP=$(PREFIX)/$(CROSS)-objdump
+OBJDMP=$(CROSS)-objdump
 
 # The size-reporting tool
-SIZE=$(PREFIX)/$(CROSS)-size
+SIZE=$(CROSS)-size
 
 # The utility for writing a .bin file to the MCU.
 WRITE=$(PROG_PREFIX)/STM32_Programmer_CLI
@@ -38,32 +37,26 @@ TARGET=out
 LINKSCRIPT=STM32F091RCTX_FLASH.ld
 
 # Additional linker flags
-LINKFLAGS=--specs=nano.specs -Wl,-Map=$(TARGET).map
-
-# if we have specified a linker script, add it
-ifdef LINKSCRIPT
-	LINKFLAGS:=$(LINKFLAGS)
-endif
+LINKFLAGS=-Wl,-Map=$(TARGET).map
 
 # List of object files needed to produce target.
-OBJS := $(patsubst %.c, %.o, $(wildcard *.c)) $(patsubst %.s, %.o, $(wildcard *.s)) 
-LL_OBJS := $(notdir $(patsubst %.c, %.o, $(wildcard $(LL_DIR)/*_ll_*.c)))
+# OBJS := $(patsubst %.c, %.o, $(wildcard *.c)) $(patsubst %.s, %.o, $(wildcard *.s)) 
+# LL_OBJS := $(notdir $(patsubst %.c, %.o, $(wildcard $(LL_DIR)/*_ll_*.c)))
 
-HDRS := $(wildcard *.h)
+SRCS = main.c \
+       system_stm32f0xx.c \
+	   startup_stm32f091rctx.s
 
-PROCESSOR = STM32F091xC
-CFLAGS = -mcpu=cortex-m0 -mthumb -mfloat-abi=soft -std=gnu11 --specs=nano.specs -ggdb3 -O0 -Wall
+LL_SRCS = $(LL_DIR)/stm32f0xx_ll_utils.c
 
-# if on Windows (but not MinGW), use a different RM
-ifdef OS
-    ifndef MINGW_PREFIX
-	RM = del /Q
-    endif
-endif
+HDRS = 
+
+CFLAGS = -mcpu=cortex-m0 -mthumb -mfloat-abi=soft -std=gnu11 --specs=nosys.specs -ggdb3 -O0 -Wall
 
 # What to do for "make all"
 .PHONY: all
 all: $(TARGET).bin $(TARGET).dis size.stdout
+
 # Turn the elf file into a bin file.
 $(TARGET).bin: $(TARGET).elf
 	@echo Creating bin file $@
@@ -79,24 +72,10 @@ $(TARGET).dis: $(TARGET).elf
 	$(OBJDMP) -h -S $< > $@
 
 # Link all the object files and any local library code used by them into an elf file.
-$(TARGET).elf: $(OBJS) $(LL_OBJS)
-	@echo Linking elf file $@
-	$(CC) -mcpu=cortex-m0 -T$(LINKSCRIPT) -o $(TARGET).elf $(OBJS) $(LL_OBJS) $(LINKFLAGS)
-
-# Create an object file for each C file. Force recompile if *any* header has changed.
-%.o: %.c $(HDRS)
-	@echo Creating object file $@
-	$(CC) $(CFLAGS) $(INCLUDES) -c -D$(PROCESSOR) -o $@ $<
-
-# Create an object file for each assembly file.
-%.o: %.s
-	@echo Creating object file $@
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-# Create an object file for C in STM32 LL library
-%.o: $(LL_DIR)/%.c
-	@echo Creating LL object file $@
-	$(CC) $(CFLAGS) $(INCLUDES) -c -D$(PROCESSOR) -o $@ $<
+# Force recompile if *any* header has changed.
+$(TARGET).elf: $(SRCS) $(LL_SRCS) $(HDRS)
+	@echo Compiling all sources to elf file $@
+	$(CC) $(CFLAGS) $(INCLUDES) -D$(PROCESSOR) -T$(LINKSCRIPT) $(LINKFLAGS) -o $(TARGET).elf $(SRCS) $(LL_SRCS)
 
 .PHONY: clean
 # Delete all bin, map, object, and elf files, and other assorted crud

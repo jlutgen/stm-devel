@@ -1,0 +1,29 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "~/STM32Cube/Repository/STM32Cube_FW_F0_V1.10.1/Drivers/CMSIS/Include",
+                "~/STM32Cube/Repository/STM32Cube_FW_F0_V1.10.1/Drivers/CMSIS/Device/ST/STM32F0xx/Include",
+                "~/STM32Cube/Repository/STM32Cube_FW_F0_V1.10.1/Drivers/STM32F0xx_HAL_Driver/Inc"
+            ],
+            "defines": [
+                "STM32F091xC"
+            ],
+            "macFrameworkPath": [],
+            "compilerPath": "/usr/local/bin/arm-none-eabi-gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++11",
+            "intelliSenseMode": "macos-gcc-arm",
+            "compilerArgs": [
+                "-mcpu=cortex-m0",
+                "-std=gnu11"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true
+            }
+        }
+    ],
+    "version": 4
+}
