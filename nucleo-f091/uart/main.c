@@ -7,7 +7,6 @@
 */
 
 #include "stm32f0xx.h"
-#include "stm32f0xx_ll_utils.h"
 
 static char msg[80];
 
@@ -109,9 +108,7 @@ int main(void) {
 	USART1->BRR = 48000000 / 115200; /* (1) */
 	USART1->CR1 = USART_CR1_TE | USART_CR1_RXNEIE | USART_CR1_RE| USART_CR1_UE; /* (2) */
 
-	// LL_Init1msTick(48000000);
-
-    usart2_write("Hello from Nucleo!\r\n");
+    usart2_write("Hello from Nucleo!!\r\n");
 	while(1) {
         usart2_read(msg, 80);
         usart2_write("received:");

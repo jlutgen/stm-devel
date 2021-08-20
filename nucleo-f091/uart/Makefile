@@ -6,18 +6,24 @@
 #
 #############################################################
 
+# Processor type
+# See stm32f0xx.h for a list of thes
 PROCESSOR=STM32F091xC
-STM_COMMON=$(HOME)/STM32Cube/Repository/STM32Cube_FW_F0_V1.11.3
-PROG_PREFIX=/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/MacOs/bin
 
-CROSS=arm-none-eabi
-CC=$(CROSS)-gcc
-
-INCLUDES=-I$(STM_COMMON)/Drivers/CMSIS/Include \
-		 -I$(STM_COMMON)/Drivers/CMSIS/Device/ST/STM32F0xx/Include \
-		 -I$(STM_COMMON)/Drivers/STM32F0xx_HAL_Driver/Inc
+ifdef WSL_DISTRO_NAME        # Windows Subsystem for Linux
+	STM_COMMON=/mnt/c/Users/jlutg/STM32Cube/Repository/STM32Cube_FW_F0_V1.11.3
+    # TODO: PROG_PREFIX for WSL
+else
+	STM_COMMON=$(HOME)/STM32Cube/Repository/STM32Cube_FW_F0_V1.11.3
+	PROG_PREFIX=/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/MacOs/bin
+endif
 
 LL_DIR=$(STM_COMMON)/Drivers/STM32F0xx_HAL_Driver/Src
+
+CROSS=arm-none-eabi
+
+# The C compiler
+CC=$(CROSS)-gcc
 
 # The bin creator
 HX=$(CROSS)-objcopy
@@ -34,18 +40,28 @@ WRITE=$(PROG_PREFIX)/STM32_Programmer_CLI
 # The output target $(TARGET).bin
 TARGET=out
 
-SRCS = main.c \
-       system_stm32f0xx.c \
-	   startup_stm32f091xc.s
+SRCS  = main.c
+SRCS += system_stm32f0xx.c
+SRCS += startup_stm32f091xc.s
 
 LL_SRCS =
 
 HDRS = 
 
-LINKSCRIPT=STM32F091RCTX_FLASH.ld
+INCLUDES  = -I.
+INCLUDES += -I$(STM_COMMON)/Drivers/CMSIS/Include
+INCLUDES += -I$(STM_COMMON)/Drivers/CMSIS/Device/ST/STM32F0xx/Include
+INCLUDES += -I$(STM_COMMON)/Drivers/STM32F0xx_HAL_Driver/Inc
 
-CFLAGS = -mcpu=cortex-m0 -mthumb -mfloat-abi=soft -std=gnu11 --specs=nosys.specs -ggdb3 -O0 -Wall
+CFLAGS  = -ggdb3 -O0 -Wall 
+#CFLAGS += -DUSE_STDPERIPH_DRIVER
+CFLAGS += -std=gnu11
+CFLAGS += -mthumb -mcpu=cortex-m0
+CFLAGS += -mfloat-abi=soft
+CFLAGS += --specs=nosys.specs
+
 LINKFLAGS=-Wl,-Map=$(TARGET).map
+LINKSCRIPT=STM32F091RCTX_FLASH.ld
 
 # What to do for "make all"
 .PHONY: all
@@ -79,10 +95,6 @@ clean:
 .PHONY: write
 write: $(TARGET).bin $(TARGET).dis
 	$(WRITE) -c port=SWD -w $(TARGETDIR)$(TARGET).bin 0x8000000 -v -rst
-
-.PHONY: termite
-termite:
-	"/c/Program Files (x86)/Termite/Termite.exe" &
 
 .PHONY: putty
 putty:

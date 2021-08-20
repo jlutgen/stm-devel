@@ -7,12 +7,7 @@
                 "/mnt/c/Users/jlutg/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.4/Drivers/CMSIS/Device/ST/STM32F1xx/Include",
                 "/mnt/c/Users/jlutg/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.4/Drivers/CMSIS/Include"
             ],
-            "defines": [
-                "_DEBUG",
-                "UNICODE",
-                "_UNICODE",
-                "STM32F103xB"
-            ],
+            "defines": ["_DEBUG", "UNICODE", "_UNICODE", "STM32F103xB"],
             "cStandard": "gnu11",
             "cppStandard": "gnu++11",
             "intelliSenseMode": "linux-gcc-arm",
@@ -20,11 +15,24 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true
             },
-            "compilerArgs": [
-                "-DSTM32F103xB",
-                "-mthumb",
-                "-mcpu=cortex-m3"
-            ]
+            "compilerArgs": ["-DSTM32F103xB", "-mthumb", "-mcpu=cortex-m3"]
+        },
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "~/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.4/Drivers/CMSIS/Device/ST/STM32F1xx/Include",
+                "~/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.4/Drivers/CMSIS/Include"
+            ],
+            "defines": ["_DEBUG", "UNICODE", "_UNICODE", "STM32F103xB"],
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++11",
+            "intelliSenseMode": "macos-gcc-arm",
+            "compilerPath": "/usr/local/bin/arm-none-eabi-gcc",
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "compilerArgs": ["-DSTM32F103xB", "-mthumb", "-mcpu=cortex-m3"]
         }
     ],
     "version": 4
