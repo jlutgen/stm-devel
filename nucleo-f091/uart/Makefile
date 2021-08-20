@@ -7,7 +7,7 @@
 #############################################################
 
 PROCESSOR=STM32F091xC
-STM_COMMON=$(HOME)/STM32Cube/Repository/STM32Cube_FW_F0_V1.10.1
+STM_COMMON=$(HOME)/STM32Cube/Repository/STM32Cube_FW_F0_V1.11.3
 PROG_PREFIX=/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/MacOs/bin
 
 CROSS=arm-none-eabi
@@ -34,24 +34,18 @@ WRITE=$(PROG_PREFIX)/STM32_Programmer_CLI
 # The output target $(TARGET).bin
 TARGET=out
 
-LINKSCRIPT=STM32F091RCTX_FLASH.ld
-
-# Additional linker flags
-LINKFLAGS=-Wl,-Map=$(TARGET).map
-
-# List of object files needed to produce target.
-# OBJS := $(patsubst %.c, %.o, $(wildcard *.c)) $(patsubst %.s, %.o, $(wildcard *.s)) 
-# LL_OBJS := $(notdir $(patsubst %.c, %.o, $(wildcard $(LL_DIR)/*_ll_*.c)))
-
 SRCS = main.c \
        system_stm32f0xx.c \
-	   startup_stm32f091rctx.s
+	   startup_stm32f091xc.s
 
-LL_SRCS = $(LL_DIR)/stm32f0xx_ll_utils.c
+LL_SRCS =
 
 HDRS = 
 
+LINKSCRIPT=STM32F091RCTX_FLASH.ld
+
 CFLAGS = -mcpu=cortex-m0 -mthumb -mfloat-abi=soft -std=gnu11 --specs=nosys.specs -ggdb3 -O0 -Wall
+LINKFLAGS=-Wl,-Map=$(TARGET).map
 
 # What to do for "make all"
 .PHONY: all
@@ -96,4 +90,4 @@ putty:
 
 .PHONY: screen
 screen:
-	"$(TERMEMU)" "$(PORT)" 230400,crtscts
+	"$(TERMEMU)" "$(PORT)" 115200,crtscts

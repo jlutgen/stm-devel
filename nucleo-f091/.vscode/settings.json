@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "*.S": "8051",
+        "*.dis": "8051",
+        "*.inc": "8051",
+        "*.lst": "8051",
+        "*.jsx": "javascriptreact",
+        "stm32f0xx.h": "c"
+    }
+}
