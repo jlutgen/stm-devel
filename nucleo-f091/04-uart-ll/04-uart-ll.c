@@ -91,11 +91,9 @@ int main(void) {
     LL_USART_SetTransferDirection(USART1, LL_USART_DIRECTION_TX_RX);
     LL_USART_Enable(USART1);
 
-	LL_Init1msTick(48000000);
-
     LL_RCC_ClocksTypeDef clocks;
     LL_RCC_GetSystemClocksFreq (&clocks);
-    sprintf(msg, "sysclk=%u\r\npclk1=%u\r\nhclk=%u\r\n",
+    sprintf(msg, "SYSCLK=%u\r\nPCLK1=%u\r\nHCLK=%u\r\n",
             (unsigned) clocks.SYSCLK_Frequency,
             (unsigned) clocks.PCLK1_Frequency,
             (unsigned) clocks.HCLK_Frequency);

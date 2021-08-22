@@ -1,4 +1,0 @@
-main.c
-startup_stm32f091rctx.s
-syscalls.c
-system_stm32f0xx.c

@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "stm32f0xx.h"
-#include "main.h"
+#include "05-uart-hal.h"
 
 UART_HandleTypeDef huart2;
 
@@ -41,7 +41,7 @@ int main(void) {
     SystemClock_Config();
     MX_GPIO_Init();
     MX_USART2_UART_Init();
-
+    Error_Handler();            // DELETE
 	while(1) {
         usart_read(&huart2, msg, 80);
         usart_write(&huart2, "received:");

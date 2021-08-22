@@ -5,6 +5,8 @@
         "*.inc": "8051",
         "*.lst": "8051",
         "*.jsx": "javascriptreact",
-        "stm32f0xx.h": "c"
+        "stm32f0xx.h": "c",
+        "stm32f0xx_ll_gpio.h": "c",
+        "stm32f0xx_ll_rcc.h": "c"
     }
 }

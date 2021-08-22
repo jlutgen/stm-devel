@@ -8,18 +8,13 @@
                 "~/STM32Cube/Repository/STM32Cube_FW_F0_V1.11.3/Drivers/CMSIS/Device/ST/STM32F0xx/Include",
                 "~/STM32Cube/Repository/STM32Cube_FW_F0_V1.11.3/Drivers/STM32F0xx_HAL_Driver/Inc"
             ],
-            "defines": [
-                "STM32F091xC"
-            ],
+            "defines": ["STM32F091xC", "USE_FULL_LL_DRIVER"],
             "macFrameworkPath": [],
             "compilerPath": "/usr/local/bin/arm-none-eabi-gcc",
             "cStandard": "gnu11",
             "cppStandard": "gnu++11",
             "intelliSenseMode": "macos-gcc-arm",
-            "compilerArgs": [
-                "-mcpu=cortex-m0",
-                "-std=gnu11"
-            ],
+            "compilerArgs": ["-mcpu=cortex-m0", "-std=gnu11"],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true
             }
