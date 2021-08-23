@@ -7,6 +7,7 @@
         "*.jsx": "javascriptreact",
         "stm32f0xx.h": "c",
         "stm32f0xx_ll_gpio.h": "c",
-        "stm32f0xx_ll_rcc.h": "c"
+        "stm32f0xx_ll_rcc.h": "c",
+        "05-uart-hal.h": "c"
     }
 }

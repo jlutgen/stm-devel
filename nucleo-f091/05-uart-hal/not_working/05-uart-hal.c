@@ -40,8 +40,18 @@ int main(void) {
     HAL_Init();
     SystemClock_Config();
     MX_GPIO_Init();
-    MX_USART2_UART_Init();
-    Error_Handler();            // DELETE
+
+    // RCC->AHBENR |= RCC_AHBENR_GPIOAEN;  // enable peripheral bus clock for Port A
+
+    // // GPIOA->MODER &= 0xFFFFF3FF;  // clear mode bits for PA5
+    // GPIOA->MODER &= ~GPIO_MODER_MODER5_Msk;  // clear mode bits for PA5
+
+    // // GPIOA->MODER |= 0x00000400;  // PA5: general-purpose push-pull output, max speed 2 MHz
+    // GPIOA->MODER |= (1UL << GPIO_MODER_MODER5_Pos);  // PA5: general-purpose output (push-pull is default)
+
+    // MX_USART2_UART_Init();
+    // Error_Handler();            // DELETE
+    usart_write(&huart2, "Hello from uart hal\r\n");
 	while(1) {
         usart_read(&huart2, msg, 80);
         usart_write(&huart2, "received:");
@@ -142,11 +152,38 @@ static void MX_GPIO_Init(void) {
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
+#define BIT_5 (1UL << 5)
+
 void Error_Handler(void) {
-    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-    HAL_Delay(500);
-    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-    HAL_Delay(1000);
+    while(1) {
+        GPIOA->ODR |=  BIT_5; // LED on
+        for (int i = 0; i < 200000; i++); // arbitrary delay
+        GPIOA->ODR &= ~BIT_5; // LED off
+        for (int i = 0; i < 400000; i++); // twice the arbitrary delay
+    }
+    // while (1) {
+    //     HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    //     HAL_Delay(500);
+    //     // for (int i = 0; i < 50000; i++);
+    //     HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    //     HAL_Delay(1000);
+    //     // for (int i = 0; i < 50000; i++);
+    // }
+}
+void HAL_MspInit(void)
+{
+  /* USER CODE BEGIN MspInit 0 */
+
+  /* USER CODE END MspInit 0 */
+
+  __HAL_RCC_SYSCFG_CLK_ENABLE();
+  __HAL_RCC_PWR_CLK_ENABLE();
+
+  /* System interrupt init*/
+
+  /* USER CODE BEGIN MspInit 1 */
+
+  /* USER CODE END MspInit 1 */
 }
 
 #ifdef  USE_FULL_ASSERT
