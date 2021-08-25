@@ -74,8 +74,8 @@ int main(void) {
     // Wait until PLL is switched on
     while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
 
-    // Make system clock (divided by 8) available on MCO signal
-    RCC->CFGR |= RCC_CFGR_MCOPRE_DIV16;
+    // Make system clock (divided by prediv) available on MCO signal
+    RCC->CFGR |= RCC_CFGR_MCOPRE_DIV128;
     RCC->CFGR |= RCC_CFGR_MCO_SYSCLK;
 
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN; // Enable Port A (must do this before setting alternate function)
