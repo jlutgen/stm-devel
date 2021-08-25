@@ -1,0 +1,21 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "Cortex Debug",
+            "cwd": "${workspaceRoot}/01-blinky-bare",
+            "executable": "${workspaceRoot}/01-blinky-bare/out.elf",
+            "servertype": "openocd",
+            "configFiles": ["interface/stlink.cfg", "target/stm32f0x.cfg"],
+            "device": "STM32F091RC",
+            "interface": "swd",
+            "runToMain": true,
+            "svdFile": "${workspaceRoot}/STM32F091x.svd"
+        }
+    ]
+  }
