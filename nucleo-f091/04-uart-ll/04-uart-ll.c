@@ -92,7 +92,7 @@ int main(void) {
     LL_USART_Enable(USART1);
 
     LL_RCC_ClocksTypeDef clocks;
-    LL_RCC_GetSystemClocksFreq (&clocks);
+    LL_RCC_GetSystemClocksFreq(&clocks);
     sprintf(msg, "SYSCLK=%u\r\nPCLK1=%u\r\nHCLK=%u\r\n",
             (unsigned) clocks.SYSCLK_Frequency,
             (unsigned) clocks.PCLK1_Frequency,

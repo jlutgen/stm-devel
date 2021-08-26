@@ -8,13 +8,13 @@
             "type": "cortex-debug",
             "request": "launch",
             "name": "Cortex Debug",
-            "cwd": "${workspaceRoot}/01-blinky-bare",
-            "executable": "${workspaceRoot}/01-blinky-bare/out.elf",
+            "cwd": "${workspaceRoot}/06-timers-ll",
+            "executable": "${workspaceRoot}/06-timers-ll/out.elf",
             "servertype": "openocd",
             "configFiles": ["interface/stlink.cfg", "target/stm32f0x.cfg"],
             "device": "STM32F091RC",
             "interface": "swd",
-            "runToMain": true,
+            "runToEntryPoint": "main",
             "svdFile": "${workspaceRoot}/STM32F091x.svd"
         }
     ]
