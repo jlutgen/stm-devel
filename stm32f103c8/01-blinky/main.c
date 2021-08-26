@@ -1,5 +1,7 @@
 /*
  * Bare metal blinky for STM32F103C8
+ *
+ * Smart board: user LED on PC13
  */
 
 #include <stdint.h>
