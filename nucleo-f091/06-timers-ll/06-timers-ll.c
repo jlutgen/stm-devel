@@ -67,8 +67,6 @@ int main(void) {
     while (1) {
         LL_GPIO_TogglePin(GPIOA, LL_GPIO_PIN_5);
         LL_mDelay(1000);
-        LL_GPIO_TogglePin(GPIOA, LL_GPIO_PIN_5);
-        LL_mDelay(1000);
     }
     return 0;
 }

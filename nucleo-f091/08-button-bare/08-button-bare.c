@@ -1,7 +1,5 @@
 /*
- * Test Timer 14 on Nucleo-F091
- *
- * Toggle a pin in the ISR for TIM14 interrupt
+ * Try the user button connected to PC13 on the Nucleo-F091RC
  */
 
 #include <stm32f0xx.h>
@@ -52,44 +50,25 @@ void delay_ms(int ms) {
 
 void config_gpio(void) {
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+    RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
 
     // User LED on PA5
-    // Set PA5 to general purpose output mode (push-pull low-speed is default)
+    // Config as general-purpose output (push-pull low-speed is default)
     GPIOA->MODER |= (GPIO_MODE_OUTPUT << GPIO_MODER_MODER5_Pos);
 
-    // Timer ISR toggles PA10
-    GPIOA->MODER |= (GPIO_MODE_OUTPUT << GPIO_MODER_MODER10_Pos);
-}
-
-void config_timer14() {
-    // TIM14 is general-purpose auto-reload 16-bit upcounter
-    // Counter is clocked by APB clock by default (freq = PCLK)
-    // Clock tick freq = PCLK / (PSC + 1)
-    // Overflow freq = (clock tick freq) / (reload + 1)
-    RCC->APB1ENR |= RCC_APB1ENR_TIM14EN;  // enable clock for TIM14
-    TIM14->ARR = 0x7fff;                  // reload value
-    TIM14->PSC = 0;                       // divide input clock by 1
-    TIM14->DIER |=
-        TIM_DIER_UIE;  // enable interrupts for update event (timer overflow)
-}
-
-// ISR names are in startup_stm32*.s
-void TIM14_IRQHandler(void) {
-    GPIOA->ODR ^= (1 << 10);   // toggle PA10
-    TIM14->SR &= ~TIM_SR_UIF;  // clear the update interrupt flag
+    // User button on PC13
+    // Config as floating low-speed digital input (default)
 }
 
 int main(void) {
     config_clocks();
     config_1ms_tick();
     config_gpio();
-    config_timer14();
-    NVIC_EnableIRQ(TIM14_IRQn);
-    TIM14->CR1 |= TIM_CR1_CEN;  // start TIM14
     while (1) {
-        // Toggle user LED on PA5
-        GPIOA->ODR ^= (1 << 5);
-        delay_ms(500);
+        if (GPIOC->IDR & (1 << 13))  // button not pressed
+            GPIOA->ODR &= ~(1 << 5);
+        else
+            GPIOA->ODR |= 1 << 5;
     }
     return 0;
 }
