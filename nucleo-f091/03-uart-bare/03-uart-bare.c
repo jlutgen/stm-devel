@@ -87,7 +87,7 @@ void gpio_config(void) {
     GPIOB->MODER |= GPIO_MODER_MODER7_1;        // AF mode
     GPIOB->AFR[0] |= 0 << GPIO_AFRL_AFSEL7_Pos; // AF #1 on PB3 is USART1_RX
 
-    // User LED on PA5: push-pull output
+    // User LED on PA5: output (push-pull by default)
     GPIOA->MODER |= 1 << (5 * 2);
 }
 
