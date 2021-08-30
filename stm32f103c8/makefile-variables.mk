@@ -12,7 +12,8 @@ PROCESSOR=STM32F103xB
 
 ifdef WSL_DISTRO_NAME        # Windows Subsystem for Linux
 	STM_COMMON=/mnt/c/Users/jlutg/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.4
-    # TODO: PROG_PREFIX for WSL
+    #PROG_PREFIX=
+    # Using Segger J-Link EDU Mini GUI (no command-line interface)
 else
 	STM_COMMON=$(HOME)/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.4
 	PROG_PREFIX=/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/MacOs/bin
