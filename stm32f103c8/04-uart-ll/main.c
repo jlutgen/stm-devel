@@ -2,7 +2,7 @@
   ******************************************************************************
   * @file    main.c
   *
-  * Bare-metal UART
+  * UART using LL
   * 
   * Smart board: user LED on PC13
   ******************************************************************************
@@ -10,6 +10,10 @@
 
 #include <stm32f1xx.h>
 #include <stdio.h>
+#include <stm32f1xx_ll_bus.h>
+#include <stm32f1xx_ll_gpio.h>
+#include <stm32f1xx_ll_rcc.h>
+#include <stm32f1xx_ll_utils.h>
 
 static char msg[80];
 
@@ -42,36 +46,27 @@ void usart_write(USART_TypeDef *usart, char* s) {
 void clock_init(void) {
     // Configure system clock for 64 MHz operation
 
-	// HSION = 1 by default (internal 8 MHz RC oscillator)
-	// and HSI is selected as system clock by default.
-	// PLL is off and not ready (i.e., is unlocked) by default.
-
-	// Set the PLL source and  multiplier (PREDIV is divide by 1 by default)
-	// Default PLL source is HSI / 2
-    RCC->CFGR |= RCC_CFGR_PLLMULL16;  // Yes, MULL (!)
-    // Enable the PLL
-    RCC->CR |= RCC_CR_PLLON;
-    // Wait for PLL ready
-    while (!(RCC->CR & RCC_CR_PLLRDY));
-
-	FLASH->ACR |= FLASH_ACR_LATENCY; // One wait state needed if sysclk will be over 24 MHz
-    // Select PLL as system clock
-    RCC->CFGR |= RCC_CFGR_SW_PLL;
-
-    // Wait until PLL is switched on
-    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
+    LL_UTILS_ClkInitTypeDef clk;
+    LL_UTILS_PLLInitTypeDef pll;
+    clk.AHBCLKDivider = LL_RCC_SYSCLK_DIV_1;
+    clk.APB1CLKDivider = LL_RCC_APB1_DIV_1;
+    clk.APB2CLKDivider = LL_RCC_APB2_DIV_1;
+    pll.PLLMul = LL_RCC_PLL_MUL_16;
+    pll.Prediv = LL_RCC_PREDIV_DIV_2;
+    LL_PLL_ConfigSystemClock_HSI(&pll,  &clk);
 
     // Make system clock available on MCO signal
-    RCC->CFGR |= RCC_CFGR_MCO_SYSCLK;
+    LL_RCC_ConfigMCO(LL_RCC_MCO1SOURCE_SYSCLK);
 }
 
 void gpio_init(void) {
-    RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;  // enable peripheral bus clock for Port C
-    RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;  // enable peripheral bus clock for Port A
+    LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOA);
+    LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOC);
 
-    GPIOC->CRH &= 0xFF0FFFFF;  // clear config bits for PC13
-    GPIOC->CRH |= 0x00200000;  // PC13: general-purpose push-pull output, max speed 2 MHz
-    
+    // User LED
+    LL_GPIO_SetPinMode(GPIOC, LL_GPIO_PIN_13, LL_GPIO_MODE_OUTPUT);
+    LL_GPIO_SetPinOutputType(GPIOC, LL_GPIO_PIN_13, LL_GPIO_OUTPUT_PUSHPULL);
+
     // Default alternate function on PA8 is MCO
     GPIOA->CRH &= ~(0xF << (0 * 4)); // clear CNF8 and MODE8
     GPIOA->CRH |= 0b1011 << (0 * 4); // Alternate function, high-speed
