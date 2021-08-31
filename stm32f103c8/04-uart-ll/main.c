@@ -13,34 +13,28 @@
 #include <stm32f1xx_ll_bus.h>
 #include <stm32f1xx_ll_gpio.h>
 #include <stm32f1xx_ll_rcc.h>
+#include <stm32f1xx_ll_usart.h>
 #include <stm32f1xx_ll_utils.h>
 
 static char msg[80];
 
-void usart_read(USART_TypeDef *usart, char* s, int len) {
+void usart_write(USART_TypeDef *USARTx, const char *s) {
+    for (; *s != 0; ++s) {
+        while(!LL_USART_IsActiveFlag_TXE(USARTx));
+        LL_USART_TransmitData8(USARTx, *s);
+    }
+}
+
+void usart_read(USART_TypeDef *USARTx, char *s, int len) {
     for (int i = 0; i < len; i++) {
-        while ((usart->SR & USART_SR_RXNE) != USART_SR_RXNE)
-            ;
-            
-        *s = (uint8_t)(usart->DR); // Receive data, clear flag
+        while(!LL_USART_IsActiveFlag_RXNE(USARTx));
+        *s = LL_USART_ReceiveData8(USARTx);
         if (*s == '\r' || *s == '\n') {
             *(s + 1) = '\0';
             return;
         }
         ++s;
     }
-}
-
-void usart_write(USART_TypeDef *usart, char* s) {
-    while (*s) {
-        usart->DR = *s++;
-        // Wait for data to be shifted from TDR to tx shift register
-        while (!(usart->SR & USART_SR_TXE))
-            ;
-    }
-    // Wait for last data to be transmitted (transmission complete)
-    // while (!(usart->SR & USART_SR_TC))
-        // ;
 }
 
 void clock_init(void) {
@@ -60,32 +54,47 @@ void clock_init(void) {
 }
 
 void gpio_init(void) {
+    LL_GPIO_InitTypeDef info;
+
     LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOA);
     LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOC);
 
+    LL_GPIO_StructInit(&info);  // Fill in default values; this isn't strictly necessary,
+                                // as we later reset all fields except info.Pull,
+                                // which is used only when configuring inputs.
+
     // User LED
-    LL_GPIO_SetPinMode(GPIOC, LL_GPIO_PIN_13, LL_GPIO_MODE_OUTPUT);
-    LL_GPIO_SetPinOutputType(GPIOC, LL_GPIO_PIN_13, LL_GPIO_OUTPUT_PUSHPULL);
+    info.Pin = LL_GPIO_PIN_13;
+    info.Mode = LL_GPIO_MODE_OUTPUT;
+    info.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    info.Speed = LL_GPIO_SPEED_FREQ_LOW;
+    LL_GPIO_Init(GPIOC, &info);
 
     // Default alternate function on PA8 is MCO
-    GPIOA->CRH &= ~(0xF << (0 * 4)); // clear CNF8 and MODE8
-    GPIOA->CRH |= 0b1011 << (0 * 4); // Alternate function, high-speed
+    info.Pin = LL_GPIO_PIN_8;
+    info.Mode = LL_GPIO_MODE_ALTERNATE;
+    info.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    info.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+    LL_GPIO_Init(GPIOA, &info);
 	
     // Default alternate function on PA9/10 is USART1_TX/RX
-    GPIOA->CRH &= ~(0xF << (1 * 4)); // clear CNF9 and MODE9
-    GPIOA->CRH |= 0b1010 << (1 * 4); // Alternate function, low-speed
+    info.Pin = LL_GPIO_PIN_9;
+    info.Mode = LL_GPIO_MODE_ALTERNATE;
+    info.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    info.Speed = LL_GPIO_SPEED_FREQ_LOW;
+    LL_GPIO_Init(GPIOA, &info);
     // PA10: floating input (default)
 }
 
 void uart_init(void) {
-    RCC->APB2ENR |= RCC_APB2ENR_USART1EN; // Enable peripheral clock for USART1
+    LL_USART_InitTypeDef info;
 
-    // Baud rate = PCLK2 / (16 * div)
-    // For 115200 baud rate and PCLK = 64 MHz, this gives div = 34.72 
+    LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
 
-    // 115200 baud, 8N1
-	USART1->BRR = (34 << 4) | 12; // div = 34 + 12/16 = 34.75
- 	USART1->CR1 |= USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // Enable tx and rx, enable uart
+    LL_USART_StructInit(&info);  // Fill in defaults: TX/RX enabled, 8N1, 9600 baud
+    info.BaudRate = 115200;
+    LL_USART_Init(USART1, &info);
+    LL_USART_Enable(USART1);
 }
 
 
@@ -97,16 +106,12 @@ int main(void) {
     usart_write(USART1, "Hello from STMF103 smart!\r\n");
     sprintf(msg, "GPIOA->CRH=0x%lx\r\n", GPIOA->CRH);
     usart_write(USART1, msg);
-    // while (!(USART1->SR & USART_SR_RXNE)){
-    //     GPIOC->ODR ^=  1 << 13; // toggle LED
-    //     for (int i = 0; i < 300000; i++); // arbitrary delay
-    // }
+
 	while(1) {
         usart_read(USART1, msg, 80);
         usart_write(USART1, "received:");
         usart_write(USART1, msg);
         usart_write(USART1, "\r\n");
-        // GPIOC->ODR ^= 1 << 13;
-        // for (int i = 0; i < 500000; i++); // arbitrary delay
+        LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
 	}
 }
