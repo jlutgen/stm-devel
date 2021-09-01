@@ -11,11 +11,13 @@
             "cwd": "${workspaceRoot}/04-uart-ll",
             "executable": "${workspaceRoot}/04-uart-ll/out.elf",
             "servertype": "openocd",
-            "configFiles": ["interface/jlink.cfg", "target/stm32f1x.cfg"],
+            "openocdPath": "/mnt/c/openocd/bin/openocd.exe",
+            "configFiles": ["interface/stlink.cfg", "target/stm32f1x.cfg"],
             "device": "STM32F103xB",
             "interface": "swd",
             "runToEntryPoint": "main",
-            "svdFile": "${workspaceRoot}/STM32F103xx.svd"
+            "svdFile": "${workspaceRoot}/STM32F103xx.svd",
+            "gdbPath": "/usr/bin/gdb-multiarch",
         }
     ]
   }

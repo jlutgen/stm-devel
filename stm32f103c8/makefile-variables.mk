@@ -12,11 +12,16 @@ PROCESSOR=STM32F103xB
 
 ifdef WSL_DISTRO_NAME        # Windows Subsystem for Linux
 	STM_COMMON=/mnt/c/Users/jlutg/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.4
+	PROG_PREFIX=/mnt/c/Program\ Files/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin
+    # The utility for writing a .bin file to the MCU.
+	WRITE=$(PROG_PREFIX)/STM32_Programmer_CLI.exe
     #PROG_PREFIX=
     # Using Segger J-Link EDU Mini GUI (no command-line interface)
 else
 	STM_COMMON=$(HOME)/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.4
 	PROG_PREFIX=/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/MacOs/bin
+    # The utility for writing a .bin file to the MCU.
+	WRITE=$(PROG_PREFIX)/STM32_Programmer_CLI
 endif
 
 COMMON_DIR=../common
@@ -35,9 +40,6 @@ OBJDMP=$(CROSS)-objdump
 
 # The size-reporting tool
 SIZE=$(CROSS)-size
-
-# The utility for writing a .bin file to the MCU.
-WRITE=$(PROG_PREFIX)/STM32_Programmer_CLI
 
 # The output target $(TARGET).bin
 TARGET=out
