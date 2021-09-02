@@ -8,8 +8,8 @@
             "type": "cortex-debug",
             "request": "launch",
             "name": "Cortex Debug",
-            "cwd": "${workspaceRoot}/04-uart-ll",
-            "executable": "${workspaceRoot}/04-uart-ll/out.elf",
+            "cwd": "${workspaceRoot}/assembly",
+            "executable": "${workspaceRoot}/assembly/nothing.elf",
             "servertype": "openocd",
             "openocdPath": "/mnt/c/openocd/bin/openocd.exe",
             "configFiles": ["interface/stlink.cfg", "target/stm32f1x.cfg"],
@@ -17,7 +17,7 @@
             "interface": "swd",
             "runToEntryPoint": "main",
             "svdFile": "${workspaceRoot}/STM32F103xx.svd",
-            "gdbPath": "/usr/bin/gdb-multiarch",
+            "gdbPath": "/mnt/c/Program Files (x86)/GNU Arm Embedded Toolchain/10 2021.07/bin/arm-none-eabi-gdb.exe",
         }
     ]
   }
