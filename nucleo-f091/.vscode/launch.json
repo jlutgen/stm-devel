@@ -8,14 +8,14 @@
             "type": "cortex-debug",
             "request": "launch",
             "name": "Cortex Debug",
-            "cwd": "${workspaceRoot}/09-button-ll",
-            "executable": "${workspaceRoot}/09-button-ll/out.elf",
+            "cwd": "${workspaceRoot}/assembly",
+            "executable": "${workspaceRoot}/assembly/out.elf",
             "servertype": "openocd",
             "configFiles": ["interface/stlink.cfg", "target/stm32f0x.cfg"],
             "device": "STM32F091RC",
             "interface": "swd",
             "runToEntryPoint": "main",
-            "svdFile": "${workspaceRoot}/STM32F091x.svd"
+            "svdFile": "${workspaceRoot}/STM32F091x.svd",
         }
     ]
   }
