@@ -4,12 +4,9 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/../libopencm3/include",
-                "~/STM32Cube/Repository/STM32Cube_FW_F0_V1.11.3/Drivers/CMSIS/Include",
-                "~/STM32Cube/Repository/STM32Cube_FW_F0_V1.11.3/Drivers/CMSIS/Device/ST/STM32F0xx/Include",
-                "~/STM32Cube/Repository/STM32Cube_FW_F0_V1.11.3/Drivers/STM32F0xx_HAL_Driver/Inc"
+                "${workspaceFolder}/../libopencm3/include"
             ],
-            "defines": ["STM32F0", "STM32F091xC", "USE_FULL_LL_DRIVER"],
+            "defines": ["STM32F0", "STM32F091xC"],
             "macFrameworkPath": [],
             "compilerPath": "/usr/local/bin/arm-none-eabi-gcc",
             "cStandard": "gnu11",

@@ -1,6 +1,6 @@
 # What to do for "make all"
 .PHONY: all
-all: $(TARGET).bin $(TARGET).dis size.stdout
+all: $(TARGET).elf $(TARGET).dis size.stdout
 
 # Turn the elf file into a bin file.
 $(TARGET).bin: $(TARGET).elf
@@ -20,7 +20,7 @@ $(TARGET).dis: $(TARGET).elf
 # Force recompile if *any* header has changed.
 $(TARGET).elf: $(SRCS) $(LIB_SRCS) $(HDRS)
 	@echo Compiling all sources to elf file $@
-	$(CC) $(CFLAGS) $(INCLUDES) -D$(FAMILY) -D$(PROCESSOR) -T$(LINKSCRIPT) $(LINKFLAGS) $(SRCS) $(LIB_SRCS) $(LIBS) -o $(TARGET).elf 
+	$(CC) $(CFLAGS) $(INCLUDES) -D$(FAMILY) -D$(PROCESSOR) $(LDFLAGS) $(SRCS) $(LDLIBS) -o $(TARGET).elf 
 
 .PHONY: clean
 # Delete all bin, map, object, and elf files, and other assorted crud
@@ -29,12 +29,4 @@ clean:
 
 .PHONY: write
 write: $(TARGET).bin $(TARGET).dis
-	$(WRITE) -c port=SWD -w $(TARGETDIR)$(TARGET).bin 0x8000000 -v -rst
-
-.PHONY: putty
-putty:
-	"$(TERMEMU)" -serial -sercfg 230400,R "$(PORT)"
-
-.PHONY: screen
-screen:
-	"$(TERMEMU)" "$(PORT)" 115200,crtscts
+	$(WRITE) -c port=SWD -w $(TARGETDIR)$(TARGET).elf -v -rst

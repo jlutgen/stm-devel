@@ -43,9 +43,7 @@ WRITE=$(PROG_PREFIX)/STM32_Programmer_CLI
 # The output target $(TARGET).bin
 TARGET=out
 
-SRCS = \
-	$(COMMON_DIR)/system_stm32f0xx.c \
-	$(COMMON_DIR)/startup_stm32f091xc.s
+SRCS =
 
 INCLUDES = \
 	-I. \
@@ -61,8 +59,12 @@ CFLAGS = \
 	-mfloat-abi=soft \
 	--specs=nosys.specs \
 	-Wextra -Wshadow -Wno-unused-variable \
-	-Wredundant-decls -Wstrict-prototypes -Wmissing-prototypes
+	-Wredundant-decls -Wstrict-prototypes
 
-LDFLAGS  = -Wl,-Map=$(TARGET).map
+LDLIBS = -lopencm3_stm32f0
+LDFLAGS  = -L$(OPENCM3_DIR)/lib
+LDFLAGS += -T$(LINKSCRIPT)
+LDFLAGS += -nostartfiles
+LDFLAGS += -Wl,-Map=$(TARGET).map
 LDFLAGS += -Wl,--gc-sections
-LINKSCRIPT=$(COMMON_DIR)/STM32F091RCTX_FLASH.ld
+LINKSCRIPT=$(COMMON_DIR)/stm32f091rc_opencm3.ld

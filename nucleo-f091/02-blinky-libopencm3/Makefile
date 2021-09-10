@@ -1,8 +1,6 @@
 include ../makefile-variables.mk
 
-SRCS += 02-blinky-ll.c
-
-LIB_SRCS = 
+SRCS = 02-blinky-libopencm3.c
 
 HDRS = 
 

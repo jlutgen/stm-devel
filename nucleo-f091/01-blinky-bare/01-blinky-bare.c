@@ -2,18 +2,18 @@
  * Bare metal blinky for Nucleo-F091
  */
 
-#include <stdint.h>
-#include <stm32f0xx.h>
+#include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/gpio.h>
 
 int main(void) {  
     // Enable peripheral bus clock for Port A
-    RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+    RCC_AHBENR |= RCC_AHBENR_GPIOAEN;
 
     // PA5: general-purpose output (push-pull is default)
-    GPIOA->MODER |= 1 << (5 * 2);
+    GPIOA_MODER |= GPIO_MODE(5, GPIO_MODE_OUTPUT);
 
     while (1) {
-        GPIOA->ODR ^= 1 << 5;  // toggle user LED on PA5
+        GPIOA_ODR ^= 1 << 5;  // toggle user LED on PA5
         for (int i = 0; i < 200000; i++)  // arbitrary delay
             ;
     }
