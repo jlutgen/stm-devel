@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @file    03-uart-bare.c
+ * @file    04-uart-libopencm3
  *
  * USART2 is connected to ST-LINK USB on Nucleo board
  ******************************************************************************
@@ -41,36 +41,11 @@ void usart_write(uint32_t usart, char* s) {
 
 void clock_config(void) {
     // Configure system clock for 48 MHz operation
-
-    // HSION = 1 by default (internal 8 MHz RC oscillator)
-    // and HSI is selected as system clock by default.
-    // PLL is off and not ready (i.e., is unlocked) by default.
-
-    // Set the PLL source and  multiplier
-    // Constants aren't defined in an entirely consistent way in libopencm3 header
-    // files; for example, we must shift RCC_CFGR_PLLSRS_HSI_CLK_DIV2 to the correct
-    // position ourselves, but RCC_CFGR_PLLMUL_MUL12 incorporates the correct shift
-    // already.
-    RCC_CFGR |= (RCC_CFGR_PLLSRC_HSI_CLK_DIV2 << 16) | RCC_CFGR_PLLMUL_MUL12;
-    // Enable the PLL
-    RCC_CR |= RCC_CR_PLLON;
-    // Wait for PLL ready
-    while (!(RCC_CR & RCC_CR_PLLRDY))
-        ;
-
-    // One wait state needed if SYSCLK > 24 MHz
-    FLASH_ACR |= FLASH_ACR_LATENCY_1WS;
-
-    // Select PLL as system clock
-    RCC_CFGR |= RCC_CFGR_SW_PLL;
-
-    // Wait until PLL is switched on
-    while ((RCC_CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL)
-        ;
+    rcc_clock_setup_in_hsi_out_48mhz();
 
     // Make system clock (divided by prediv) available on MCO signal
     RCC_CFGR |= RCC_CFGR_MCOPRE_DIV128;
-    RCC_CFGR |= RCC_CFGR_MCO_SYSCLK << RCC_CFGR_MCO_SHIFT;
+    rcc_set_mco(RCC_CFGR_MCO_SYSCLK);
 }
 
 void gpio_config(void) {
@@ -79,7 +54,6 @@ void gpio_config(void) {
 
     GPIOA_MODER |= GPIO_MODE(8, GPIO_MODE_AF);  // AF mode
     GPIOA_AFRH |= GPIO_AFR(8 - 8, GPIO_AF0);    // AF #0 on PA8 is MCO
-    GPIOA_OSPEEDR |= GPIO_OSPEED(8, GPIO_OSPEED_100MHZ);
 
     GPIOA_MODER |= GPIO_MODE(2, GPIO_MODE_AF);  // AF mode
     GPIOA_AFRL |= GPIO_AFR(2, GPIO_AF1);        // AF #1 on PA2 is USART2_TX
