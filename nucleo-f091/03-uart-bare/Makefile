@@ -1,6 +1,6 @@
 include ../makefile-variables.mk
 
-SRCS = 03-uart-bare.c
+SRCS = main.c
 
 HDRS = 
 

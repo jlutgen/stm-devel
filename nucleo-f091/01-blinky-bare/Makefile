@@ -1,6 +1,6 @@
 include ../makefile-variables.mk
 
-SRCS = 01-blinky-bare.c
+SRCS = main.c
 
 HDRS = 
 

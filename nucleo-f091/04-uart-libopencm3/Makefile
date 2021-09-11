@@ -1,6 +1,6 @@
 include ../makefile-variables.mk
 
-SRCS += 04-uart-libopencm3.c
+SRCS += main.c
 
 HDRS = 
 

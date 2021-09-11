@@ -1,6 +1,6 @@
 include ../makefile-variables.mk
 
-SRCS += 07-timers-bare.c
+SRCS += main.c
 
 LIB_SRCS += 
 
