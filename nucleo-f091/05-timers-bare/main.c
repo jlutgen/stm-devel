@@ -53,7 +53,7 @@ void config_1ms_tick(void) {
     STK_RVR = HCLK / 1000 - 1; // reload value
     STK_CVR = 0;               // current value
     // Use processor clock, and enable
-    STK_CSR = STK_CSR_CLKSOURCE | STK_CSR_ENABLE;
+    STK_CSR = STK_CSR_CLKSOURCE_AHB | STK_CSR_ENABLE;
 }
 
 void delay_ms(int ms) {
@@ -72,6 +72,10 @@ void config_gpio(void) {
 
     // User LED on PA5: output (push-pull by default)
     GPIOA_MODER |= GPIO_MODE(5, GPIO_MODE_OUTPUT);
+
+    GPIOA_MODER |= GPIO_MODE(8, GPIO_MODE_AF);  // AF mode
+    GPIOA_AFRH |= GPIO_AFR(8 - 8, GPIO_AF0);    // AF #0 on PA8 is MCO
+    GPIOA_OSPEEDR |= GPIO_OSPEED(8, GPIO_OSPEED_100MHZ);
 
     // Timer ISR toggles PA10
     GPIOA_MODER |= GPIO_MODE(10, GPIO_MODE_OUTPUT);
@@ -100,7 +104,7 @@ int main(void) {
     config_1ms_tick();
     config_gpio();
     config_timer14();
-    nvic_enable_irq(NVIC_TIM14_IRQ);
+    NVIC_ISER(0) |= (1 << NVIC_TIM14_IRQ); // enable TIM14 interrupt
     TIM14_CR1 |= TIM_CR1_CEN;  // start TIM14
     while (1) {
         // Toggle user LED on PA5
