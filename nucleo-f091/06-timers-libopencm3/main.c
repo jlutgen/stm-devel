@@ -4,7 +4,6 @@
  * Toggle a pin in the ISR for TIM14 interrupt
  */
 
-#include <stdint.h>
 #include <libopencm3/stm32/flash.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/rcc.h>
