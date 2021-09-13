@@ -18,10 +18,10 @@ void config_clocks(void) {
     // PLL is off and not ready (i.e., is unlocked) by default.
 
     // Set the PLL source and  multiplier
-    // Constants aren't defined in an entirely consistent way in libopencm3 header
-    // files; for example, we must shift RCC_CFGR_PLLSRS_HSI_CLK_DIV2 to the correct
-    // position ourselves, but RCC_CFGR_PLLMUL_MUL12 incorporates the correct shift
-    // already.
+    // Constants aren't defined in an entirely consistent way in libopencm3
+    // header files; for example, we must shift RCC_CFGR_PLLSRS_HSI_CLK_DIV2 to
+    // the correct position ourselves, but RCC_CFGR_PLLMUL_MUL12 incorporates
+    // the correct shift already.
     RCC_CFGR |= (RCC_CFGR_PLLSRC_HSI_CLK_DIV2 << 16) | RCC_CFGR_PLLMUL_MUL12;
     // Enable the PLL
     RCC_CR |= RCC_CR_PLLON;
@@ -67,18 +67,20 @@ void config_interrupts(void) {
 
     // Enable falling trigger
     EXTI_FTSR |= EXTI13;
+
+    // Enable external interrupts 4..15
+    NVIC_ISER(0) |= 1 << NVIC_EXTI4_15_IRQ;
 }
 
 void exti4_15_isr(void) {
-    EXTI_PR |= EXTI13; // Clear pending flag by writing a "1" 
-    GPIOA_ODR ^= 1 << 5; // Toggle LED
+    EXTI_PR |= EXTI13;    // Clear pending flag by writing a "1"
+    GPIOA_ODR ^= 1 << 5;  // Toggle LED
 }
 
 int main(void) {
     config_clocks();
     config_gpio();
     config_interrupts();
-    NVIC_ISER(0) |= 1 << NVIC_EXTI4_15_IRQ; // Enable external interrupts 4..15
     while (1) {
     }
     return 0;
