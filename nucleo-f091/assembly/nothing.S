@@ -33,7 +33,9 @@ ResetHandler:
     ldr r0, =0
     bl FillRAM
     nop
-.align 2
+    @ nop
+@ On ARM, this aligns to 2^2 (like ".align 4" on most other architectures)
+@ .align 2
 xyz:
     bl Setup
     bl MainLoop

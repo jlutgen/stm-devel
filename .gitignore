@@ -1,9 +1,11 @@
 .DS_store
+generated.*.ld
 *.hex
 *.bin
 *.map
 *.o
 *.a
+*.d
 *.elf
 *.dep
 *.dis

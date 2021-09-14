@@ -12,7 +12,7 @@
 
 void config_clocks(void) {
     // Configure system clock, AHB clock, and APB clock for 48 MHz operation
-    rcc_clock_setup_in_hsi_out_48mhz();
+    rcc_clock_setup_in_hsi_out_48mhz(); 
 }
 
 void config_gpio(void) {
