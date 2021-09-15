@@ -6,10 +6,6 @@
 #
 #############################################################
 
-# Processor type
-# See stm32f0xx.h for a list of thes
-PROCESSOR=STM32F091xC
-
 ifdef WSL_DISTRO_NAME        # Windows Subsystem for Linux
 	STM_COMMON=/mnt/c/Users/jlutg/STM32Cube/Repository/STM32Cube_FW_F0_V1.11.3
     # TODO: PROG_PREFIX for WSL
@@ -45,8 +41,8 @@ TARGET=out
 
 SRCS = nothing.S
 
-LINKSCRIPT=stm32f091x.ld
-LINKFLAGS=-Map out.map -T $(LINKSCRIPT)
+LDSCRIPT=stm32f091x.ld
+LDFLAGS=-Map out.map -T $(LDSCRIPT)
 
 # What to do for "make all"
 .PHONY: all
@@ -71,11 +67,10 @@ $(TARGET).o: $(SRCS)
 	@echo Assembling to $@
 	$(AS) -g -o $(TARGET).o $(SRCS)
 
-# Link all the object files and any local library code used by them into an elf file.
-# Force recompile if *any* header has changed.
+# Link all the object files into an elf file.
 $(TARGET).elf: $(TARGET).o
 	@echo Linking object file to create elf file $@
-	$(LD) $(LINKFLAGS) -o $(TARGET).elf $(TARGET).o
+	$(LD) $(LDFLAGS) -o $(TARGET).elf $(TARGET).o
 
 .PHONY: clean
 # Delete all bin, map, object, and elf files, and other assorted crud

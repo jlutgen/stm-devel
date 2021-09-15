@@ -12,15 +12,12 @@ COMMON_DIR=../common
 OPENCM3_DIR=../../libopencm3
 
 # Processor type (used by linker script generator)
-DEVICE=STM32F091RC
+DEVICE=stm32f091rc
 
+# Configure variables for linker script generation,
+# changing default "generated.$(DEVICE).ld"
 include $(OPENCM3_DIR)/mk/genlink-config.mk
-
-ifdef WSL_DISTRO_NAME        # Windows Subsystem for Linux
-    # TODO: PROG_PREFIX for WSL
-else
-	PROG_PREFIX=/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/MacOs/bin
-endif
+LDSCRIPT=$(COMMON_DIR)/$(DEVICE).ld
 
 CROSS=arm-none-eabi
 
@@ -92,10 +89,10 @@ $(TARGET).elf: $(OBJS) $(LDSCRIPT)
 
 # Delete map, object, and elf files, as well as other assorted crud
 clean:
-	$(RM) *.map *.o *.elf *.d *.dis generated.*.ld *~
+	$(RM) *.map *.o *.elf *.d *.dis *~
 
 write: $(TARGET).elf
-	$(WRITE) -c port=SWD -w $(TARGETDIR)$(TARGET).elf -v -rst
+	openocd -f interface/stlink.cfg -f target/stm32f0x.cfg -c "program $< verify reset exit"
 
 include $(OPENCM3_DIR)/mk/genlink-rules.mk
 

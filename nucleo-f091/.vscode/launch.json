@@ -11,11 +11,11 @@
             "cwd": "${workspaceRoot}/10-button-int-libopencm3",
             "executable": "${workspaceRoot}/10-button-int-libopencm3/out.elf",
             "servertype": "openocd",
-            "configFiles": ["interface/stlink.cfg", "target/stm32f0x.cfg"],
+            "configFiles": ["${workspaceRoot}/common/openocd.cfg"],
             "device": "STM32F091RC",
             "interface": "swd",
             "runToEntryPoint": "main",
-            "svdFile": "${workspaceRoot}/STM32F091x.svd",
+            "svdFile": "${workspaceRoot}/common/STM32F091x.svd",
         }
     ]
   }
