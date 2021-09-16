@@ -46,7 +46,6 @@ OBJS = $(SRCS:%.c=%.o)
 
 INCLUDES += -I$(OPENCM3_DIR)/include
 
-# DEPFLAGS += -MT $@ -MMD -MP
 DEPFLAGS = -MMD -MP
 
 CFLAGS += -ggdb3 -O0 -Wall
