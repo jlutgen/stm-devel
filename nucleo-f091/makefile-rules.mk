@@ -44,15 +44,16 @@ TARGET=out
 
 OBJS = $(SRCS:%.c=%.o)
 
-INCLUDES += -I.
 INCLUDES += -I$(OPENCM3_DIR)/include
+
+# DEPFLAGS += -MT $@ -MMD -MP
+DEPFLAGS = -MMD -MP
 
 CFLAGS += -ggdb3 -O0 -Wall
 CFLAGS += $(ARCH_FLAGS)
 CFLAGS += -std=gnu11
 CFLAGS += -Wextra -Wshadow -Wno-unused-variable
 CFLAGS += -Wredundant-decls -Wstrict-prototypes
-CFLAGS += -MMD
 
 LDFLAGS += $(ARCH_FLAGS)
 LDFLAGS += -T$(LDSCRIPT)
@@ -79,7 +80,7 @@ $(TARGET).dis: $(TARGET).elf
 %.o: %.c
 	@echo
 	@echo Compiling source file $< to object file $@
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(INCLUDES) -o $@ -c $<
+	$(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(INCLUDES) -o $@ -c $<
 
 # Link all the object files and any local library code used by them into an elf file.
 $(TARGET).elf: $(OBJS) $(LDSCRIPT)
@@ -92,7 +93,7 @@ clean:
 	$(RM) *.map *.o *.elf *.d *.dis *~
 
 write: $(TARGET).elf
-	openocd -f interface/stlink.cfg -f target/stm32f0x.cfg -c "program $< verify reset exit"
+	openocd -f $(COMMON_DIR)/openocd.cfg -c "program $< verify reset exit"
 
 include $(OPENCM3_DIR)/mk/genlink-rules.mk
 
