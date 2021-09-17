@@ -6,7 +6,7 @@
 #
 #############################################################
 
-# Define SRCS and HDRS in Makefile in project directory, then include this file
+# Define SRCS in Makefile in project directory, then include this file
 
 COMMON_DIR=../common
 OPENCM3_DIR=../../libopencm3
@@ -51,7 +51,7 @@ DEPFLAGS = -MMD -MP
 CFLAGS += -ggdb3 -O0 -Wall
 CFLAGS += $(ARCH_FLAGS)
 CFLAGS += -std=gnu11
-CFLAGS += -Wextra -Wshadow -Wno-unused-variable
+CFLAGS += -Wextra -Wshadow
 CFLAGS += -Wredundant-decls -Wstrict-prototypes
 
 LDFLAGS += $(ARCH_FLAGS)
