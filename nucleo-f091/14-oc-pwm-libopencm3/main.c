@@ -1,7 +1,7 @@
 /*
- * Test Timer 14 on Nucleo-F091 using libopencm3
+ * PWM
  *
- * Toggle a pin in the ISR for TIM14 interrupt
+ * 
  */
 
 #include <libopencm3/stm32/flash.h>
