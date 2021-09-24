@@ -1,10 +1,8 @@
 /*
  * RTC
- *
  */
 
 #include <stdio.h>
-#include <libopencm3/stm32/adc.h>
 #include <libopencm3/stm32/flash.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/pwr.h>
@@ -16,6 +14,20 @@
 #define HCLK 48000000
 
 static char msg[80];
+static char* day_names[] = {
+    "Monday", "Tuesday",  "Wednesday", "Thursday",
+    "Friday", "Saturday", "Sunday",
+};
+
+struct datetime {
+    int8_t yy;
+    int8_t mo;
+    int8_t dd;
+    int8_t day_of_week;
+    int8_t hh;
+    int8_t mm;
+    int8_t ss;
+};
 
 void usart_read(uint32_t usart, char* s, int len) {
     for (int i = 0; i < len; i++) {
@@ -79,11 +91,13 @@ void config_clocks(void) {
     RCC_CFGR |= RCC_CFGR_MCO_LSE << RCC_CFGR_MCO_SHIFT;
 
     // Start the 32.768 kHz low-speed external oscillator (LSE)
-    RCC_APB1ENR |= RCC_APB1ENR_PWREN; // Enable the PWR module
-    PWR_CR |= PWR_CR_DBP; // Allow access to RCC_BDCR bits
-    RCC_BDCR |= RCC_BDCR_LSEON; // Turn on the LSE
-    RCC_BDCR |= RCC_BDCR_RTCSEL_LSE; // RCC clock is LSE
-    RCC_BDCR |= RCC_BDCR_RTCEN; // Enable RCC clock
+    RCC_APB1ENR |= RCC_APB1ENR_PWREN;  // Enable the PWR module
+    PWR_CR |= PWR_CR_DBP;              // Allow access to RCC_BDCR bits
+    RCC_BDCR |= RCC_BDCR_LSEON;        // Turn on the LSE
+    while (!(RCC_BDCR & RCC_BDCR_LSERDY))
+        ;                             // Wait for LSE ready
+    RCC_BDCR |= RCC_BDCR_RTCSEL_LSE;  // RCC clock is LSE
+    RCC_BDCR |= RCC_BDCR_RTCEN;       // Enable RCC clock
 }
 
 void config_1ms_tick(void) {
@@ -118,12 +132,6 @@ void config_gpio(void) {
     GPIOA_MODER |= GPIO_MODE(8, GPIO_MODE_AF);  // AF mode
     GPIOA_AFRH |= GPIO_AFR(8 - 8, GPIO_AF0);    // AF #0 on PA8 is MCO
     GPIOA_OSPEEDR |= GPIO_OSPEED(8, GPIO_OSPEED_100MHZ);
-
-    GPIOA_MODER |= GPIO_MODE(4, GPIO_MODE_AF);  // AF mode
-    GPIOA_AFRL |= GPIO_AFR(4, GPIO_AF4);        // AF #4 on PA4 is TIM14_CH1
-
-    // PA0: analog input (ADC_CH0)
-    GPIOA_MODER |= GPIO_MODE(0, GPIO_MODE_ANALOG);
 }
 
 void config_uart(void) {
@@ -137,63 +145,63 @@ void config_uart(void) {
     USART2_CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE;
 }
 
-void config_adc(void) {
-    RCC_APB2ENR |= RCC_APB2ENR_ADCEN;  // Enable the peripheral clock for ADC
-    ADC1_CR |= ADC_CR_ADEN;            // Enable the ADC
-    // Wait until the ADC is ready
-    while (!(ADC1_ISR & ADC_ISR_ADRDY))
-        ;
-    ADC1_CFGR2 |= ADC_CFGR2_CKMODE_PCLK_DIV2;  // ADC clock is PCLK / 2
-    ADC1_CHSELR |= ADC_CHSELR_CHSEL(16);  // Select ch 16 (temperature sensor)
-    ADC1_CHSELR |= ADC_CHSELR_CHSEL(0);   // ... and ch 0 (PA0/ADC_IN0)
-    ADC1_CCR |= ADC_CCR_TSEN;             // Enable temperature sensor
-    // Datasheet says min sampling time for temperature sensor
-    // is 4 us, which is 80 ADC clock cycles (ADC clock: 20 MHz)
-    ADC1_SMPR |= ADC_SMPR_SMP_239DOT5;  // Sampling time: 239.5 cycles
-}
-
 void set_rtc_clock(void) {
     // Unlock RTC registers
     RTC_WPR = 0xCA;
     RTC_WPR = 0x53;
 
-    RTC_ISR |= RTC_ISR_INIT; // Enter initialization mode
+    RTC_ISR |= RTC_ISR_INIT;  // Enter initialization mode
     while (!(RTC_ISR & RTC_ISR_INITF))
-        ; // Wait until init flag set
-    // TODO
-    
+        ;  // Wait until init flag set
+    // Program date: 2021-09-24
+    RTC_DR = (2 << RTC_DR_YT_SHIFT) | (1 << RTC_DR_YU_SHIFT) |
+             (RTC_DR_WDU_FRI << RTC_DR_WDU_SHIFT) | (9 << RTC_DR_MU_SHIFT) |
+             (2 << RTC_DR_DT_SHIFT) | (4 << RTC_DR_DU_SHIFT);
+    RTC_ISR &= ~RTC_ISR_INIT;  // Exit initialization mode
+}
+
+void read_rtc_clock(struct datetime* dt) {
+    uint32_t dr = RTC_DR;
+    uint32_t tr = RTC_TR;
+    dt->yy =
+        10 * ((dr & (RTC_DR_YT_MASK << RTC_DR_YT_SHIFT)) >> RTC_DR_YT_SHIFT);
+    dt->yy += ((dr & (RTC_DR_YU_MASK << RTC_DR_YU_SHIFT)) >> RTC_DR_YU_SHIFT);
+    dt->day_of_week =
+        ((dr & (RTC_DR_WDU_MASK << RTC_DR_WDU_SHIFT)) >> RTC_DR_WDU_SHIFT);
+    dt->mo =
+        10 * ((dr & (RTC_DR_MT_MASK << RTC_DR_MT_SHIFT)) >> RTC_DR_MT_SHIFT);
+    dt->mo += ((dr & (RTC_DR_MU_MASK << RTC_DR_MU_SHIFT)) >> RTC_DR_MU_SHIFT);
+    dt->dd =
+        10 * ((dr & (RTC_DR_DT_MASK << RTC_DR_DT_SHIFT)) >> RTC_DR_DT_SHIFT);
+    dt->dd += ((dr & (RTC_DR_DU_MASK << RTC_DR_DU_SHIFT)) >> RTC_DR_DU_SHIFT);
+    dt->hh =
+        10 * ((tr & (RTC_TR_HT_MASK << RTC_TR_HT_SHIFT)) >> RTC_TR_HT_SHIFT);
+    dt->hh += ((tr & (RTC_TR_HU_MASK << RTC_TR_HU_SHIFT)) >> RTC_TR_HU_SHIFT);
+    dt->mm =
+        10 * ((tr & (RTC_TR_MNT_MASK << RTC_TR_MNT_SHIFT)) >> RTC_TR_MNT_SHIFT);
+    dt->mm +=
+        ((tr & (RTC_TR_MNU_MASK << RTC_TR_MNU_SHIFT)) >> RTC_TR_MNU_SHIFT);
+    dt->ss =
+        10 * ((tr & (RTC_TR_ST_MASK << RTC_TR_ST_SHIFT)) >> RTC_TR_ST_SHIFT);
+    dt->ss += ((tr & (RTC_TR_SU_MASK << RTC_TR_SU_SHIFT)) >> RTC_TR_SU_SHIFT);
 }
 
 int main(void) {
-    int32_t temperature;
+    struct datetime dt;
 
     config_clocks();
     config_1ms_tick();
     config_gpio();
     config_uart();
-    config_adc();
-    if (RCC_BDCR & RCC_BDCR_LSERDY)
-        usart_write(USART2, "LSE ready\r\n");
-    else
-        usart_write(USART2, "LSE not ready\r\n");
+    set_rtc_clock();
     while (1) {
-        // Start a sequence of ADC conversions, one for
-        // each channel we have enabled
-        ADC1_CR |= ADC_CR_ADSTART;
-
-        // Channel 0
-        while (!(ADC1_ISR & ADC_ISR_EOC))
-            ;  // Wait for conversion to be completed
-        sprintf(msg, "%ld\t", ADC1_DR);
+        read_rtc_clock(&dt);
+        sprintf(msg, "%s 20%02d-%02d-%02d %02d:%02d:%02d\r\n",
+                day_names[dt.day_of_week - 1], dt.yy, dt.mo, dt.dd, dt.hh,
+                dt.mm, dt.ss);
         usart_write(USART2, msg);
 
-        // Channel 16
-        while (!(ADC1_ISR & ADC_ISR_EOC))
-            ;  // Wait for conversion to be completed
-        temperature = ADC1_DR;
-        sprintf(msg, "%ld\r\n", temperature);
-        usart_write(USART2, msg);
-        delay_ms(2000);
+        delay_ms(1000);
     }
     return 0;
 }
