@@ -134,7 +134,7 @@ void config_gpio(void) {
     GPIOA_OSPEEDR |= GPIO_OSPEED(8, GPIO_OSPEED_100MHZ);
 }
 
-void config_uart(void) {
+void config_usart(void) {
     RCC_APB1ENR |= RCC_APB1ENR_USART2EN;  // Enable USART2 on APB
 
     // Defaults: 8 data bits, 1 stop bit, no parity (8N1)
@@ -158,11 +158,20 @@ void set_rtc_clock(void) {
              (RTC_DR_WDU_FRI << RTC_DR_WDU_SHIFT) | (9 << RTC_DR_MU_SHIFT) |
              (2 << RTC_DR_DT_SHIFT) | (4 << RTC_DR_DU_SHIFT);
     RTC_ISR &= ~RTC_ISR_INIT;  // Exit initialization mode
+    
+    // Lock RTC registers
+    RTC_WPR = 0x99;
+    RTC_WPR = 0x88;
 }
 
-void read_rtc_clock(struct datetime* dt) {
-    uint32_t dr = RTC_DR;
-    uint32_t tr = RTC_TR;
+bool read_rtc_clock(struct datetime* dt) {
+    uint32_t dr;
+    uint32_t tr;
+    if (!(RTC_ISR & RTC_ISR_RSF)) {
+        return false;
+    }
+    dr = RTC_DR;
+    tr = RTC_TR;
     dt->yy =
         10 * ((dr & (RTC_DR_YT_MASK << RTC_DR_YT_SHIFT)) >> RTC_DR_YT_SHIFT);
     dt->yy += ((dr & (RTC_DR_YU_MASK << RTC_DR_YU_SHIFT)) >> RTC_DR_YU_SHIFT);
@@ -184,6 +193,7 @@ void read_rtc_clock(struct datetime* dt) {
     dt->ss =
         10 * ((tr & (RTC_TR_ST_MASK << RTC_TR_ST_SHIFT)) >> RTC_TR_ST_SHIFT);
     dt->ss += ((tr & (RTC_TR_SU_MASK << RTC_TR_SU_SHIFT)) >> RTC_TR_SU_SHIFT);
+    return true;
 }
 
 int main(void) {
@@ -192,10 +202,13 @@ int main(void) {
     config_clocks();
     config_1ms_tick();
     config_gpio();
-    config_uart();
+    config_usart();
     set_rtc_clock();
     while (1) {
-        read_rtc_clock(&dt);
+        if (!read_rtc_clock(&dt)) {
+            usart_write(USART2, "RTC not yet synchronized\r\n");
+            continue;
+        }
         sprintf(msg, "%s 20%02d-%02d-%02d %02d:%02d:%02d\r\n",
                 day_names[dt.day_of_week - 1], dt.yy, dt.mo, dt.dd, dt.hh,
                 dt.mm, dt.ss);
