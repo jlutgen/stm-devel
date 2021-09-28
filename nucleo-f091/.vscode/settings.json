@@ -1,13 +1,3 @@
 {
-    "files.associations": {
-        "*.S": "8051",
-        "*.dis": "8051",
-        "*.inc": "8051",
-        "*.lst": "8051",
-        "*.jsx": "javascriptreact",
-        "stm32f0xx.h": "c",
-        "stm32f0xx_ll_gpio.h": "c",
-        "stm32f0xx_ll_rcc.h": "c",
-        "05-uart-hal.h": "c"
-    }
+    "cortex-debug.variableUseNaturalFormat": false
 }

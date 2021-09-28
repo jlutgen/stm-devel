@@ -15,9 +15,7 @@ static char msg[80];
 
 void usart_read(uint32_t usart, char* s, int len) {
     for (int i = 0; i < len; i++) {
-        while ((USART_ISR(usart) & USART_ISR_RXNE) != USART_ISR_RXNE)
-            ;
-        *s = (uint8_t)(USART_RDR(usart)); /* Receive data, clear flag */
+        *s = (uint8_t) usart_recv_blocking(usart);
         if (*s == '\r' || *s == '\n') {
             *(s + 1) = '\0';
             return;
@@ -28,14 +26,8 @@ void usart_read(uint32_t usart, char* s, int len) {
 
 void usart_write(uint32_t usart, char* s) {
     while (*s) {
-        USART_TDR(usart) = *s++;
-        // Wait for data to be shifted from TDR to tx shift register
-        while (!(USART_ISR(usart) & USART_ISR_TXE))
-            ;
+        usart_send_blocking(usart, *s++);
     }
-    // Wait for last data to be transmitted (transmission complete)
-    while (!(USART_ISR(usart) & USART_ISR_TC))
-        ;
 }
 
 void clock_config(void) {
@@ -55,17 +47,17 @@ void gpio_config(void) {
     gpio_set_af(GPIOA, GPIO_AF0, GPIO8);    // AF #0 on PA8 is MCO
 
     gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO2);
-    gpio_set_af(GPIOA, GPIO_AF1, GPIO2);    // AF #1 on PA2 is USART_TX
+    gpio_set_af(GPIOA, GPIO_AF1, GPIO2);    // AF #1 on PA2 is USART2_TX
 
     gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO3);
-    gpio_set_af(GPIOA, GPIO_AF1, GPIO3);    // AF #1 on PA3 is USART_RX
+    gpio_set_af(GPIOA, GPIO_AF1, GPIO3);    // AF #1 on PA3 is USART2_RX
 
     // User LED on PA5: output (push-pull by default)
     gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO5);
 }
 
 void uart_config(void) {
-    RCC_APB1ENR |= RCC_APB1ENR_USART2EN;  // Enable USART2 on APB
+    rcc_periph_clock_enable(RCC_USART2);
 
     // Defaults: 8 data bits, 1 stop bit, no parity (8N1)
 

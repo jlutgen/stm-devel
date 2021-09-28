@@ -6,21 +6,18 @@
 #
 #############################################################
 
-# Define SRCS and HDRS in Makefile in project directory, then include this file
+# Define SRCS in Makefile in project directory, then include this file
 
 COMMON_DIR=../common
 OPENCM3_DIR=../../libopencm3
 
 # Processor type (used by linker script generator)
-DEVICE=STM32F091RC
+DEVICE=stm32f091rc
 
+# Configure variables for linker script generation,
+# changing default "generated.$(DEVICE).ld"
 include $(OPENCM3_DIR)/mk/genlink-config.mk
-
-ifdef WSL_DISTRO_NAME        # Windows Subsystem for Linux
-    # TODO: PROG_PREFIX for WSL
-else
-	PROG_PREFIX=/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/MacOs/bin
-endif
+LDSCRIPT=$(COMMON_DIR)/$(DEVICE).ld
 
 CROSS=arm-none-eabi
 
@@ -47,15 +44,15 @@ TARGET=out
 
 OBJS = $(SRCS:%.c=%.o)
 
-INCLUDES += -I.
 INCLUDES += -I$(OPENCM3_DIR)/include
+
+DEPFLAGS = -MMD -MP
 
 CFLAGS += -ggdb3 -O0 -Wall
 CFLAGS += $(ARCH_FLAGS)
 CFLAGS += -std=gnu11
-CFLAGS += -Wextra -Wshadow -Wno-unused-variable
+CFLAGS += -Wextra -Wshadow
 CFLAGS += -Wredundant-decls -Wstrict-prototypes
-CFLAGS += -MMD
 
 LDFLAGS += $(ARCH_FLAGS)
 LDFLAGS += -T$(LDSCRIPT)
@@ -82,7 +79,7 @@ $(TARGET).dis: $(TARGET).elf
 %.o: %.c
 	@echo
 	@echo Compiling source file $< to object file $@
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(INCLUDES) -o $@ -c $<
+	$(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(INCLUDES) -o $@ -c $<
 
 # Link all the object files and any local library code used by them into an elf file.
 $(TARGET).elf: $(OBJS) $(LDSCRIPT)
@@ -92,10 +89,10 @@ $(TARGET).elf: $(OBJS) $(LDSCRIPT)
 
 # Delete map, object, and elf files, as well as other assorted crud
 clean:
-	$(RM) *.map *.o *.elf *.d *.dis generated.*.ld *~
+	$(RM) *.map *.o *.elf *.d *.dis *~
 
 write: $(TARGET).elf
-	$(WRITE) -c port=SWD -w $(TARGETDIR)$(TARGET).elf -v -rst
+	openocd -f $(COMMON_DIR)/openocd.cfg -c "program $< verify reset exit"
 
 include $(OPENCM3_DIR)/mk/genlink-rules.mk
 
