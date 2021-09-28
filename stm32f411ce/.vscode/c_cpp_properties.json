@@ -14,7 +14,7 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true
             },
-            "compilerArgs": ["-DSTM32F411xE", "-mthumb", "-mcpu=cortex-m3"]
+            "compilerArgs": ["-DSTM32F411xE", "-mthumb", "-mcpu=cortex-m4"]
         },
         {
             "name": "Mac",

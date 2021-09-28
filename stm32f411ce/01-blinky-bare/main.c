@@ -6,14 +6,14 @@
 #include <libopencm3/stm32/gpio.h>
 
 int main(void) {  
-    // Enable peripheral bus clock for Port A
-    RCC_AHBENR |= RCC_AHBENR_GPIOAEN;
+    // Enable peripheral bus clock for Port C
+    RCC_AHB1ENR |= RCC_AHB1ENR_GPIOCEN;
 
-    // PA5: general-purpose output (push-pull is default)
-    GPIOA_MODER |= GPIO_MODE(5, GPIO_MODE_OUTPUT);
+    // PC13: general-purpose output (push-pull is default)
+    GPIOC_MODER |= GPIO_MODE(13, GPIO_MODE_OUTPUT);
 
     while (1) {
-        GPIOA_ODR ^= 1 << 5;  // toggle user LED on PA5
+        GPIOC_ODR ^= 1 << 13;  // toggle user LED on PA5
         for (int i = 0; i < 200000; i++)  // arbitrary delay
             ;
     }

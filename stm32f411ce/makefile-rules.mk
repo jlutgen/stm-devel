@@ -18,6 +18,7 @@ include $(OPENCM3_DIR)/mk/genlink-config.mk
 
 ifdef WSL_DISTRO_NAME        # Windows Subsystem for Linux
     # TODO: PROG_PREFIX for WSL
+	PROG_PREFIX=/mnt/c/Program\ Files/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin
 else
 	PROG_PREFIX=/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/MacOs/bin
 endif
@@ -40,7 +41,11 @@ OBJDMP=$(CROSS)-objdump
 SIZE=$(CROSS)-size
 
 # The utility for writing a .bin file to the MCU.
+ifdef WSL_DISTRO_NAME        # Windows Subsystem for Linux
+WRITE=$(PROG_PREFIX)/STM32_Programmer_CLI.exe
+else
 WRITE=$(PROG_PREFIX)/STM32_Programmer_CLI
+endif
 
 # The output target $(TARGET).elf
 TARGET=out
