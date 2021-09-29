@@ -78,6 +78,7 @@ void config_gpio(void) {
 
     GPIOA_MODER |= GPIO_MODE(4, GPIO_MODE_AF);  // AF mode
     GPIOA_AFRL |= GPIO_AFR(4, GPIO_AF4);        // AF #4 on PA4 is TIM14_CH1
+    GPIOA_OSPEEDR |= GPIO_OSPEED(4, GPIO_OSPEED_HIGH);
 }
 
 void config_timer14(void) {
@@ -86,9 +87,9 @@ void config_timer14(void) {
     // Clock tick freq = PCLK / (PSC + 1)
     // Overflow freq = (clock tick freq) / (reload + 1)
     RCC_APB1ENR |= RCC_APB1ENR_TIM14EN;  // Enable clock for TIM14
-    TIM14_ARR = 1300;                    // Auto-reload value
     TIM14_PSC = 0;                       // Divide input clock by 1
-    TIM14_CCR1 = 900;                    // Output compare match value
+    TIM14_ARR = 3;                    // Auto-reload value
+    TIM14_CCR1 = 2;                    // Output compare match value
     TIM14_CCMR1 |= TIM_CCMR1_OC1M_PWM1;  // PWM mode 1
     TIM14_CCER |= TIM_CCER_CC1E;         // Enable output compare output
     TIM14_CR1 |= TIM_CR1_CEN;            // Start TIM14
@@ -101,10 +102,6 @@ int main(void) {
     config_timer14();
     while (1) {
         GPIOA_ODR ^= (1 << 5);
-        if (TIM14_CCR1 == 1300)
-            TIM14_CCR1 = 0;
-        else
-            TIM14_CCR1 += 25;
         delay_ms(200);
     }
     return 0;

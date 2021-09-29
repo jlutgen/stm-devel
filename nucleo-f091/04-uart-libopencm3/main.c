@@ -13,6 +13,26 @@
 
 static char msg[80];
 
+int _write(int file, const char *ptr, ssize_t len) {
+    // Keep i defined outside the loop so we can return it
+    int i;
+    for (i = 0; i < len; i++) {
+        // If we get a newline character, also be sure to send the carriage
+        // return character first, otherwise the serial console may not
+        // actually return to the left.
+        if (ptr[i] == '\n') {
+            usart_send_blocking(USART2, '\r');
+        }
+
+        // Write the character to send to the USART1 transmit buffer, and block
+        // until it has been sent.
+        usart_send_blocking(USART2, ptr[i]);
+    }
+
+    // Return the number of bytes we sent
+    return i;
+}
+
 void usart_read(uint32_t usart, char* s, int len) {
     for (int i = 0; i < len; i++) {
         *s = (uint8_t) usart_recv_blocking(usart);
@@ -72,8 +92,9 @@ int main(void) {
     uart_config();
 
     usart_write(USART2, "Hello from Nucleo!!\r\n");
-    sprintf(msg, "sizeof(short): %d\r\n", sizeof(short));
-    usart_write(USART2, msg);
+    printf("sizeof(short): %d\n", sizeof(short));
+    // sprintf(msg, "sizeof(short): %d\r\n", sizeof(short));
+    // usart_write(USART2, msg);
     sprintf(msg, "sizeof(int): %d\r\n", sizeof(int));
     usart_write(USART2, msg);
     sprintf(msg, "sizeof(long int): %d\r\n", sizeof(int));
