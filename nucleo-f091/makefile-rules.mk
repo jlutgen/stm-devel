@@ -36,7 +36,7 @@ OBJDMP=$(CROSS)-objdump
 # The size-reporting tool
 SIZE=$(CROSS)-size
 
-# The utility for writing a .bin file to the MCU.
+# The utility for writing a binary file to the MCU.
 WRITE=$(PROG_PREFIX)/STM32_Programmer_CLI
 
 # The output target $(TARGET).elf
@@ -49,13 +49,13 @@ INCLUDES += -I$(OPENCM3_DIR)/include
 DEPFLAGS = -MMD -MP
 
 CFLAGS += -ggdb3 -O0 -Wall
-CFLAGS += $(ARCH_FLAGS)
+CFLAGS += $(ARCH_FLAGS) # Assigned by linkscript generator
 CFLAGS += -std=gnu11
 CFLAGS += -Wextra -Wshadow
 CFLAGS += -Wredundant-decls -Wstrict-prototypes
 
-LDFLAGS += $(ARCH_FLAGS)
-LDFLAGS += -T$(LDSCRIPT)
+LDFLAGS += $(ARCH_FLAGS) # Assigned by linkscript generator
+LDFLAGS += -T$(LDSCRIPT) # Assigned by linkscript generator
 LDFLAGS += -nostartfiles
 LDFLAGS += --specs=nosys.specs
 LDFLAGS += -Wl,-Map=$(TARGET).map
@@ -75,13 +75,13 @@ $(TARGET).dis: $(TARGET).elf
 	@echo Creating disassembly file $@
 	$(OBJDMP) -h -S $< > $@
 
-# Compile each source file to an object file
+# Compile a source file to an object file
 %.o: %.c
 	@echo
 	@echo Compiling source file $< to object file $@
 	$(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(INCLUDES) -o $@ -c $<
 
-# Link all the object files and any local library code used by them into an elf file.
+# Link all the object files into an elf file
 $(TARGET).elf: $(OBJS) $(LDSCRIPT)
 	@echo
 	@echo Linking objects into elf file $@

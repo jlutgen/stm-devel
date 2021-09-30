@@ -18,6 +18,20 @@
             "runToEntryPoint": "main",
             "svdFile": "${workspaceRoot}/STM32F103xx.svd",
             "gdbPath": "/mnt/c/Program Files (x86)/GNU Arm Embedded Toolchain/10 2021.07/bin/arm-none-eabi-gdb.exe",
+        },
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "BMP MacOS",
+            "cwd": "${workspaceRoot}/01-blinky",
+            "executable": "${workspaceRoot}/01-blinky/out.elf",
+            "servertype": "bmp",
+            "BMPGDBSerialPort": "/dev/cu.usbmodem3096367130301",
+            "device": "STM32F103xB",
+            "interface": "swd",
+            "runToEntryPoint": "main",
+            "svdFile": "${workspaceRoot}/STM32F103xx.svd",
+            "gdbPath": "arm-none-eabi-gdb",
         }
     ]
   }
