@@ -89,7 +89,7 @@ void config_gpio(void) {
 }
 
 void config_dac(void) {
-
+    
     DAC_CR(DAC1) |= DAC_CR_EN1; // Enable DAC channel 1
 }
 
