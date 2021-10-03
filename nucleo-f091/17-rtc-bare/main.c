@@ -96,8 +96,8 @@ void config_clocks(void) {
     RCC_BDCR |= RCC_BDCR_LSEON;        // Turn on the LSE
     while (!(RCC_BDCR & RCC_BDCR_LSERDY))
         ;                             // Wait for LSE ready
-    RCC_BDCR |= RCC_BDCR_RTCSEL_LSE;  // RCC clock is LSE
-    RCC_BDCR |= RCC_BDCR_RTCEN;       // Enable RCC clock
+    RCC_BDCR |= RCC_BDCR_RTCSEL_LSE;  // RTC clock is LSE
+    RCC_BDCR |= RCC_BDCR_RTCEN;       // Enable RTC clock
 }
 
 void config_1ms_tick(void) {

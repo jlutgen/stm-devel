@@ -2,14 +2,37 @@
  * DAC
  */
 
+#include <math.h>
 #include <libopencm3/stm32/dac.h>
 #include <libopencm3/stm32/flash.h>
 #include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/pwr.h>
 #include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/timer.h>
+#include <libopencm3/cm3/nvic.h>
 #include <libopencm3/cm3/systick.h>
 
 #define HCLK 48000000
+#define PCLK HCLK
+
+// DDS constants
+#define TWO_32 4294967296.0  // 2^32
+#define SAMPLE_FREQ 100000
+#define TIMER14_PERIOD (PCLK / SAMPLE_FREQ)
+#define OUT_FREQ_1 440  // 440 Hz
+#define OUT_FREQ_2 660
+
+// Globals for Timer 14 ISR
+volatile uint32_t dac_data_1, dac_data_2;  // output value
+
+// DDS units:
+volatile uint32_t phase_accum_1, phase_accum_2;
+#define PHASE_INCR_1 ((uint32_t)(OUT_FREQ_1 * TWO_32 / SAMPLE_FREQ))
+#define PHASE_INCR_2 ((uint32_t)(OUT_FREQ_2 * TWO_32 / SAMPLE_FREQ))
+
+// DDS waveform tables
+#define TABLE_SIZE 256
+uint16_t sin_table[TABLE_SIZE];
+uint16_t saw_table[TABLE_SIZE];
 
 void config_clocks(void) {
     // Configure system clock for 48 MHz operation
@@ -41,20 +64,8 @@ void config_clocks(void) {
         ;
 
     // Make system clock (divided by prediv) available on MCO signal
-    // RCC_CFGR |= RCC_CFGR_MCOPRE_DIV128;
-    // RCC_CFGR |= RCC_CFGR_MCO_SYSCLK << RCC_CFGR_MCO_SHIFT;
-
-    // Make LSE available on MCO signal
-    RCC_CFGR |= RCC_CFGR_MCO_LSE << RCC_CFGR_MCO_SHIFT;
-
-    // Start the 32.768 kHz low-speed external oscillator (LSE)
-    RCC_APB1ENR |= RCC_APB1ENR_PWREN;  // Enable the PWR module
-    PWR_CR |= PWR_CR_DBP;              // Allow access to RCC_BDCR bits
-    RCC_BDCR |= RCC_BDCR_LSEON;        // Turn on the LSE
-    while (!(RCC_BDCR & RCC_BDCR_LSERDY))
-        ;                             // Wait for LSE ready
-    RCC_BDCR |= RCC_BDCR_RTCSEL_LSE;  // RCC clock is LSE
-    RCC_BDCR |= RCC_BDCR_RTCEN;       // Enable RCC clock
+    RCC_CFGR |= RCC_CFGR_MCOPRE_DIV128;
+    RCC_CFGR |= RCC_CFGR_MCO_SYSCLK << RCC_CFGR_MCO_SHIFT;
 }
 
 void config_1ms_tick(void) {
@@ -80,6 +91,9 @@ void config_gpio(void) {
     // Must enable a peripheral's clock before writing to its registers
     RCC_AHBENR |= RCC_AHBENR_GPIOAEN;  // Enable Port A clock
 
+    // PA5 (LED): general-purpose output (push-pull is default)
+    GPIOA_MODER |= GPIO_MODE(5, GPIO_MODE_OUTPUT);
+
     GPIOA_MODER |= GPIO_MODE(8, GPIO_MODE_AF);  // AF mode
     GPIOA_AFRH |= GPIO_AFR(8 - 8, GPIO_AF0);    // AF #0 on PA8 is MCO
     GPIOA_OSPEEDR |= GPIO_OSPEED(8, GPIO_OSPEED_100MHZ);
@@ -89,18 +103,57 @@ void config_gpio(void) {
 }
 
 void config_dac(void) {
-    
-    DAC_CR(DAC1) |= DAC_CR_EN1; // Enable DAC channel 1
+    RCC_APB1ENR |= RCC_APB1ENR_DACEN;
+    DAC_CR(DAC1) |= DAC_CR_EN1;  // Enable DAC channel 1
+}
+
+void config_timer14(void) {
+    // TIM14 is general-purpose auto-reload 16-bit upcounter
+    // Counter is clocked by APB clock by default (freq = PCLK)
+    // Clock tick freq = PCLK / (PSC + 1)
+    // Overflow freq = (clock tick freq) / (reload + 1)
+    RCC_APB1ENR |= RCC_APB1ENR_TIM14EN;  // enable clock for TIM14
+    TIM14_ARR = TIMER14_PERIOD;           // auto-reload value
+    TIM14_PSC = 0;                       // divide input clock by 1
+    TIM14_DIER |=
+        TIM_DIER_UIE;  // enable interrupts for update event (timer overflow)
+    NVIC_ISER(0) |= (1 << NVIC_TIM14_IRQ);  // enable TIM14 interrupt
+    TIM14_CR1 |= TIM_CR1_CEN;               // start TIM14
+}
+
+// Non-core ISR names are in libopencm3/stm32/f0/nvic.h
+// Compute DDS phase, update both DAC channels.
+void tim14_isr(void) {
+    // DDS wave table lookup
+    phase_accum_1 += PHASE_INCR_1;
+    // phase_accum_2 += PHASE_INCR_2;
+    dac_data_1 = sin_table[phase_accum_1 >> 24];
+    // dac_data_2 = sin_table[phase_accum_2 >> 24];
+
+    DAC_DHR12R1(DAC1) = dac_data_1; // 12-bit right-aligned value to output
+    TIM14_SR &= ~TIM_SR_UIF;  // Clear the update interrupt flag
+}
+
+void build_lookup_tables(void) {
+    // Build the lookup tables
+    // Scaled to generate values between 0 and 4095 for 12-bit DAC
+    int i;
+    for (i = 0; i < TABLE_SIZE; i++) {
+        sin_table[i] = 2048 + 2047 * sin(i * 6.2831853 / TABLE_SIZE);
+        saw_table[i] = 4095 * i / TABLE_SIZE;
+    }
 }
 
 int main(void) {
     config_clocks();
     config_1ms_tick();
     config_gpio();
+    config_timer14();
+    build_lookup_tables();
     config_dac();
     while (1) {
-
-        delay_ms(1000);
+        GPIOA_ODR ^= (1 << 5);
+        delay_ms(500);
     }
     return 0;
 }
