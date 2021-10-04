@@ -221,5 +221,17 @@
             "interface": "swd",
             "svdFile": "${workspaceRoot}/common/STM32F091x.svd",
         },
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "22 Cortex Debug",
+            "cwd": "${workspaceRoot}/22-dac-libopencm3",
+            "executable": "${workspaceRoot}/22-dac-libopencm3/out.elf",
+            "servertype": "openocd",
+            "configFiles": ["${workspaceRoot}/common/openocd.cfg"],
+            "device": "STM32F091RC",
+            "interface": "swd",
+            "svdFile": "${workspaceRoot}/common/STM32F091x.svd",
+        },
     ]
   }

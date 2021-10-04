@@ -56,7 +56,7 @@ void config_timer14(void) {
     // Counter is clocked by APB clock by default (freq = PCLK)
     rcc_periph_clock_enable(RCC_TIM14);
     timer_set_period(TIM14, 0x7fff); // set auto-reload value
-    timer_set_prescaler(TIM15, 0);  // overflow freq = PCLK / (reload + 1)
+    timer_set_prescaler(TIM14, 0);  // overflow freq = PCLK / (reload + 1)
     timer_enable_irq(TIM14, TIM_DIER_UIE); // enable interrupt for update events
 }
 
