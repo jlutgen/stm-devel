@@ -29,7 +29,8 @@ clean:
 
 .PHONY: write
 write: $(TARGET).bin $(TARGET).dis
-	$(WRITE) -c port=SWD -w $(TARGETDIR)$(TARGET).bin 0x8000000 -v -rst
+    # $(WRITE) -c port=SWD -w $(TARGETDIR)$(TARGET).bin 0x8000000 -v -rst
+	$(WRITE) write $(TARGETDIR)$(TARGET).bin 0x8000000
 
 .PHONY: putty
 putty:
